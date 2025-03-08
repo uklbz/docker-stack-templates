@@ -1,0 +1,28 @@
+services:
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:7.0-bullseye
+    restart: always
+    command: ["redis-server", "/etc/redis.conf", "--requirepass", "$REDIS_PASSWORD"]
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-uk}
+    volumes:
+      - ${VOLUME_DIR:-./}:/data
+      - ${VOLUME_DIR:-./}/config/redis.conf:/etc/redis.conf
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    healthcheck:
+      test: "redis-cli -h 127.0.0.1 -p $$REDIS_PORT -a $$REDIS_PASSWORD info Replication"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - redis_network
+
+networks:
+  redis_network:
+    driver: bridge
